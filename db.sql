@@ -1,0 +1,25 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  first_name VARCHAR NOT NULL,
+  last_name VARCHAR NOT NULL,
+  email VARCHAR NOT NULL UNIQUE,
+  password VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS books (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR NOT NULL,
+  author VARCHAR NOT NULL,
+  years VARCHAR NOT NULL,
+  isbn VARCHAR NOT NULL,
+  review_count INTEGER,
+  average_score  INTEGER 
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id SERIAL PRIMARY KEY,
+  rating INTEGER NOT NULL,
+  comments VARCHAR NOT NUll,
+  user_id INTEGER REFERENCES users,
+  book_id INTEGER REFERENCES books
+);
