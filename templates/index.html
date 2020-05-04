@@ -2,8 +2,25 @@
 
 {% block content %}
 
-  <div class="main">
-    Project 1: TODO
+  <div class="container">
+    <h1>Search A Book Here</h1>
+    <div class="row">
+      <form class="form-inline my-2 my-lg-0 offset-md-5" action="{{ url_for('index')}}" method="post">
+        <input class="form-control mr-sm-2" type="search" name="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form>
+    </div>
+    <div class="row">
+      <div class="col-md-6 offset-md-3">
+        {% for item in results %}
+        <a href="#">
+          <p>{{ item.title }}</p>
+          <p>{{ item.author }}</p>
+        </a>
+          <hr>
+        {% endfor %}
+      </div>
+    </div>
   </div>
 
 {% endblock %}

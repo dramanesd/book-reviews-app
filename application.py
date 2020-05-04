@@ -26,8 +26,26 @@ engine = create_engine(os.getenv("DATABASE_URL_LOCAL"))
 db = scoped_session(sessionmaker(bind=engine))
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    searchTerm = request.form.get('search')
+    if request.method == 'POST':
+        searchResults = db.execute("SELECT isbn, title, author, years FROM books WHERE isbn LIKE :isbn OR title LIKE :title OR author LIKE :author", 
+            {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'})
+        
+        results = []
+        for result in searchResults:
+            book = dict()
+            book['isbn'] = result[0]
+            book['title'] = result[1]
+            book['author'] = result[2]
+            book['years'] = result[3]
+            results.append(book)
+
+        # print(results)
+
+        return render_template('index.html', results=results, index=True)
+
     return render_template('index.html', index=True)
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -61,14 +79,19 @@ def login():
     
     if request.method == 'POST':
         userData = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'})
-        user = []
+        user = dict()
         for item in userData:
-            user.append(item)
-        hashedPass = user[0][3]
+            u = dict()
+            u['user_id'] = item[0]
+            u['username'] = item[1]
+            u['password'] = item[3]
+            user = u
+        # print(user["password"])
+        hashedPass = user["password"]
         
         if user and get_password(hashedPass, password):
-            session['user_id'] = user[0][0]
-            session['username'] = user[0][1]
+            session['user_id'] = user["user_id"]
+            session['username'] = user["username"]
 
             return redirect(url_for('index'))
 
@@ -79,3 +102,4 @@ def logout():
     session['user_id'] = False
     session.pop('username', None)
     return redirect(url_for('index'))
+
