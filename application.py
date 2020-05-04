@@ -13,7 +13,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # Check for environment variable
-if not os.getenv("DATABASE_URL"):
+if not os.getenv("DATABASE_URL_LOCAL"):
     raise RuntimeError("DATABASE_URL is not set")
 
 # Configure session to use filesystem
