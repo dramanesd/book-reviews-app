@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <h1>Book</h1>
+      {% for item in bookDetails %}
+        <h3>{{ item.title }}</h3>
+        <p>Author: {{ item.author }}</p>
+        <p>ISBN: {{ item.isbn }}</p>
+        <p>Year: {{ item.years }}</p>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

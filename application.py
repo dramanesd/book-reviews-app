@@ -30,16 +30,17 @@ db = scoped_session(sessionmaker(bind=engine))
 def index():
     searchTerm = request.form.get('search')
     if request.method == 'POST':
-        searchResults = db.execute("SELECT isbn, title, author, years FROM books WHERE isbn LIKE :isbn OR title LIKE :title OR author LIKE :author", 
+        searchResults = db.execute("SELECT id, isbn, title, author, years FROM books WHERE isbn LIKE :isbn OR title LIKE :title OR author LIKE :author", 
             {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'})
         
         results = []
         for result in searchResults:
             book = dict()
-            book['isbn'] = result[0]
-            book['title'] = result[1]
-            book['author'] = result[2]
-            book['years'] = result[3]
+            book['id'] = result[0]
+            book['isbn'] = result[1]
+            book['title'] = result[2]
+            book['author'] = result[3]
+            book['years'] = result[4]
             results.append(book)
 
         # print(results)
@@ -103,3 +104,23 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
 
+
+@app.route('/book/<int:id>')
+def book(id):
+    bookResults = db.execute("SELECT * FROM books WHERE id = :id", {"id": id})
+   
+    book = []
+    for item in bookResults:
+        i = dict()
+        i['book_id'] = item[0]
+        i['title'] = item[1]
+        i['author'] = item[2]
+        i['years'] = item[3]
+        i['isbn'] = item[4]
+        i['review_count'] = item[5]
+        i['average_score'] = item[6]
+        book.append(i)
+
+    print(book)
+
+    return render_template('book.html', bookDetails=book, book=True)
