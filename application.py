@@ -22,7 +22,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Set up database
-engine = create_engine(os.getenv("DATABASE_URL"))
+engine = create_engine(os.getenv("DATABASE_URL_LOCAL"))
 db = scoped_session(sessionmaker(bind=engine))
 
 
@@ -35,18 +35,17 @@ def register():
     if session.get('username'):
         return redirect(url_for('index'))
 
-    firstName = request.form.get("first_name")
-    lastName = request.form.get("last_name")
+    username = request.form.get('username')
     email = request.form.get("email")
     password = request.form.get("password")
 
     hashedPassword = set_password(f'{password}')
 
     if request.method == 'POST':
-        db.execute("INSERT  INTO users (first_name, last_name, email, password) VALUES (:first_name, :last_name, :email, :password)",
-            {"first_name": firstName, "last_name": lastName, "email": email, "password": hashedPassword})
+        db.execute("INSERT  INTO users (username, email, password) VALUES (:username, :email, :password)",
+            {"username": username, "email": email, "password": hashedPassword})
         db.commit()
-        print(f'{firstName, lastName, email, hashedPassword}')
+        print(f'{username, email, hashedPassword}')
         return redirect(url_for('login'))
     else:
         return render_template('register.html', title="Register", register=True)
@@ -57,15 +56,15 @@ def login():
     if session.get('username'):
         return redirect(url_for('index'))
     
-    email = request.form.get('email')
+    username = request.form.get('username')
     password = request.form.get('password')
     
     if request.method == 'POST':
-        userData = db.execute("SELECT * FROM users WHERE email = :email", {"email": f'{email}'})
+        userData = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'})
         user = []
         for item in userData:
             user.append(item)
-        hashedPass = user[0][4]
+        hashedPass = user[0][3]
         
         if user and get_password(hashedPass, password):
             session['user_id'] = user[0][0]
