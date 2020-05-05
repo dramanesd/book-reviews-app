@@ -11,14 +11,15 @@ CREATE TABLE IF NOT EXISTS books (
   author VARCHAR NOT NULL,
   years VARCHAR NOT NULL,
   isbn VARCHAR NOT NULL,
-  review_count INTEGER,
-  average_score  INTEGER 
+  review_count INTEGER DEFAULT 0,
+  average_score  INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS reviews (
   id SERIAL PRIMARY KEY,
-  rating INTEGER NOT NULL,
+  rating INTEGER NOT NULL DEFAULT 0,
   comments VARCHAR NOT NUll,
+  author VARCHAR NOT NUll,
   user_id INTEGER REFERENCES users,
   book_id INTEGER REFERENCES books
 );

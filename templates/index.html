@@ -3,20 +3,20 @@
 {% block content %}
 
   <div class="container">
-    <h1>Search A Book Here</h1>
-    <div class="row">
-      <form class="form-inline my-2 my-lg-0 offset-md-5" action="{{ url_for('index')}}" method="post">
-        <input class="form-control mr-sm-2" type="search" name="search" placeholder="Search" aria-label="Search">
+    <h1 class="text-center mt-5 mb-5">Search A Book Here</h1>
+    <div class="row justify-content-center">
+      <form class="form-inline my-2 my-lg-0" action="{{ url_for('index')}}" method="post">
+        <input class="form-control mr-sm-2" type="search" name="search" placeholder="Book Search" aria-label="Search" required>
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
       </form>
     </div>
-    <div class="row">
-      <div class="col-md-6 offset-md-3">
+    <div class="row justify-content-center mt-5">
+      <div class="col-md-6">
         {% for item in results %}
-        <a href="{{ url_for('book', id=item.id) }}">
-          <p>{{ item.title }}</p>
-          <p>{{ item.author }}</p>
-        </a>
+          <a href="{{ url_for('book', id=item.id) }}">
+            <p>{{ item.title }}</p>
+            <p>{{ item.author }}</p>
+          </a>
           <hr>
         {% endfor %}
       </div>

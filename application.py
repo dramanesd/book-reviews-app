@@ -28,11 +28,11 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    searchTerm = request.form.get('search')
     if request.method == 'POST':
+        searchTerm = request.form.get('search')
+
         searchResults = db.execute("SELECT id, isbn, title, author, years FROM books WHERE isbn LIKE :isbn OR title LIKE :title OR author LIKE :author", 
-            {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'})
-        
+            {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'}).fetchall()
         results = []
         for result in searchResults:
             book = dict()
@@ -44,7 +44,6 @@ def index():
             results.append(book)
 
         # print(results)
-
         return render_template('index.html', results=results, index=True)
 
     return render_template('index.html', index=True)
@@ -64,7 +63,7 @@ def register():
         db.execute("INSERT  INTO users (username, email, password) VALUES (:username, :email, :password)",
             {"username": username, "email": email, "password": hashedPassword})
         db.commit()
-        print(f'{username, email, hashedPassword}')
+        # print(f'{username, email, hashedPassword}')
         return redirect(url_for('login'))
     else:
         return render_template('register.html', title="Register", register=True)
@@ -105,9 +104,9 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/book/<int:id>')
+@app.route('/book/<int:id>', methods=['GET', 'POST'])
 def book(id):
-    bookResults = db.execute("SELECT * FROM books WHERE id = :id", {"id": id})
+    bookResults = db.execute("SELECT * FROM books WHERE id = :id", {"id": id}).fetchall()
    
     book = []
     for item in bookResults:
@@ -120,7 +119,40 @@ def book(id):
         i['review_count'] = item[5]
         i['average_score'] = item[6]
         book.append(i)
-
     print(book)
 
-    return render_template('book.html', bookDetails=book, book=True)
+    reviewResults = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": id}).fetchall()
+    reviews = []
+    for item in reviewResults:
+        i = dict()
+        i['rating'] = item[1]
+        i['comments'] = item[2]
+        i['author'] = item[3]
+        reviews.append(i)
+    # print(session)
+
+    if request.method == 'POST' and session['user_id'] != False:
+        ratValue = request.form.get('rat')
+        comment = request.form.get('comment')
+        book_id = id
+        user_id = session['user_id']
+        username = session['username']
+        
+        bookIdCheck = db.execute("SELECT book_id FROM reviews WHERE user_id = :user_id", {"user_id": user_id}).fetchone()
+
+        if bookIdCheck == None or bookIdCheck[0] != book_id:
+            db.execute("INSERT INTO reviews (rating, comments, author, user_id, book_id) VALUES (:rating, :comments, :author, :user_id, :book_id)", 
+                {"rating": ratValue, "comments": comment, "author": username, "user_id": user_id, "book_id": book_id})
+            db.commit()
+
+            review_count = bookResults[0][5]
+            avg = db.execute("SELECT AVG(rating) FROM reviews WHERE book_id = :book_id", {"book_id": book_id}).fetchone()
+            # print(f'Avg = {avg[0]}')
+            db.execute("UPDATE books SET review_count = :plusOne, average_score = :avg WHERE id = :book_id", 
+                {"plusOne": review_count+1, "avg": avg[0], "book_id": book_id})
+            db.commit()
+        else:
+            print("You already commented on this book!")
+            return redirect(url_for('book', id=book_id))
+
+    return render_template('book.html', id=id, bookDetails=book, reviews=reviews, book=True)

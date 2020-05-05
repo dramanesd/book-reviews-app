@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends "layout.html" %}
 
 {% block content %}
   <div class="row">
@@ -9,7 +9,45 @@
         <p>Author: {{ item.author }}</p>
         <p>ISBN: {{ item.isbn }}</p>
         <p>Year: {{ item.years }}</p>
+        <p>Review Count: {{ item.review_count }}</p>
+        <p>Review: {{ item.average_score }}</p>
       {% endfor %}
+      <div class="reviews">
+        <h3>Reviews this Book</h3>
+        <form class="my-2 my-lg-0" action="{{ url_for('book', id=id)}}" method="post">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rat" id="inlineRadio1" value="1" required>
+            <label class="form-check-label" for="inlineRadio1">1</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rat" id="inlineRadio2" value="2" required>
+            <label class="form-check-label" for="inlineRadio2">2</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rat" id="inlineRadio3" value="3" required>
+            <label class="form-check-label" for="inlineRadio3">3</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rat" id="inlineRadio4" value="4" required>
+            <label class="form-check-label" for="inlineRadio4">4</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="rat" id="inlineRadio5" value="5" required>
+            <label class="form-check-label" for="inlineRadio5">5</label>
+          </div>
+          <div class="form-group">
+            <input class="form-control mr-sm-2" type="text" name="comment" placeholder="Comment" aria-label="Comment" required>
+          </div>
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Comment</button>
+        </form>
+      </div>
+      <div>
+        {% for item in reviews %}
+          <p>{{ item.comments }}</p>
+          <p>{{ item.rating }}</p>
+          <p>{{ item.author }}</p>
+        {% endfor %}
+      </div>
     </div>
   </div>
 {% endblock %}
