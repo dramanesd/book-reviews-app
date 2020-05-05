@@ -1,4 +1,5 @@
 import os
+import requests
 
 from flask import Flask, session, render_template, url_for, request, redirect
 from flask_session import Session
@@ -9,6 +10,8 @@ from dotenv import load_dotenv
 from utils import set_password, get_password
 
 load_dotenv()
+
+GOODREADS_KEY = os.getenv("GOODREADS_KEY")
 
 app = Flask(__name__)
 
@@ -47,6 +50,7 @@ def index():
         return render_template('index.html', results=results, index=True)
 
     return render_template('index.html', index=True)
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -119,7 +123,7 @@ def book(id):
         i['review_count'] = item[5]
         i['average_score'] = item[6]
         book.append(i)
-    print(book)
+    # print(book)
 
     reviewResults = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": id}).fetchall()
     reviews = []
@@ -131,6 +135,15 @@ def book(id):
         reviews.append(i)
     # print(session)
 
+    isbn = book[0]['isbn']
+    res = requests.get(f"https://www.goodreads.com/book/review_counts.json?key={GOODREADS_KEY}&isbns={isbn}")
+    if res.status_code == 200:
+        data = res.json()
+        average_rating = data['books'][0]['average_rating']
+        work_ratings_count = data['books'][0]['work_ratings_count']
+
+        goodreadsData = {"average_rating": average_rating, "work_ratings_count": work_ratings_count}
+        
     if request.method == 'POST' and session['user_id'] != False:
         ratValue = request.form.get('rat')
         comment = request.form.get('comment')
@@ -155,4 +168,4 @@ def book(id):
             print("You already commented on this book!")
             return redirect(url_for('book', id=book_id))
 
-    return render_template('book.html', id=id, bookDetails=book, reviews=reviews, book=True)
+    return render_template('book.html', id=id, bookDetails=book, goodreadsData=goodreadsData, reviews=reviews, book=True)

@@ -11,6 +11,11 @@
         <p>Year: {{ item.years }}</p>
         <p>Review Count: {{ item.review_count }}</p>
         <p>Review: {{ item.average_score }}</p>
+        {% if goodreadsData|length > 0 %}
+          <h4>Reviews from GoodReads </h4>
+          <p>Number of review: {{ goodreadsData.work_ratings_count }}</p>
+          <p>Ratings: {{ goodreadsData.average_rating }}</p>
+        {% endif %}
       {% endfor %}
       <div class="reviews">
         <h3>Reviews this Book</h3>
