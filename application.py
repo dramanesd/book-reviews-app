@@ -1,7 +1,7 @@
 import os
 import requests
 
-from flask import Flask, session, render_template, url_for, request, redirect
+from flask import Flask, session, render_template, url_for, request, redirect, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -169,3 +169,16 @@ def book(id):
             return redirect(url_for('book', id=book_id))
 
     return render_template('book.html', id=id, bookDetails=book, goodreadsData=goodreadsData, reviews=reviews, book=True)
+
+@app.route('/api/<string:isbn>')
+def isbn_api(isbn):
+    isbn = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+    # print(isbn)
+    return jsonify({
+        "title": isbn.title,
+        "author": isbn.author,
+        "year": isbn.years,
+        "isbn": isbn.isbn,
+        "review_count": isbn.review_count,
+        "average_score": isbn.average_score
+    })
