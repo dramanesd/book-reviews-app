@@ -13,13 +13,19 @@
     </div>
     <div class="row justify-content-center mt-5">
       <div class="col-md-6">
-        {% for item in results %}
-          <a href="{{ url_for('book', id=item.id) }}">
-            <p>{{ item.title }}</p>
-            <p>{{ item.author }}</p>
-          </a>
-          <hr>
-        {% endfor %}
+        {% if results == None %}
+          <p class="text-center">There are no matching with this search term. Try agian</p>
+        {% endif %}
+        {% if results != None %}
+          <p>found {{ results|length }} results</p>
+          {% for item in results %}
+            <a href="{{ url_for('book', id=item.id) }}">
+              <p>{{ item.title }}</p>
+              <p>{{ item.author }}</p>
+            </a>
+            <hr>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
   </div>

@@ -37,7 +37,10 @@ def index():
         searchResults = db.execute("SELECT id, isbn, title, author, years FROM books WHERE isbn LIKE :isbn OR title LIKE :title OR author LIKE :author", 
             {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'}).fetchall()
 
-        return render_template('index.html', results=searchResults, index=True)
+        results = None  if len(searchResults) == 0 else searchResults
+        print(results)
+
+        return render_template('index.html', results=results, index=True)
 
     return render_template('index.html', index=True)
 
