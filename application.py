@@ -32,42 +32,34 @@ db = scoped_session(sessionmaker(bind=engine))
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
+        # Perform the search query
         searchTerm = request.form.get('search')
-
         searchResults = db.execute("SELECT id, isbn, title, author, years FROM books WHERE isbn LIKE :isbn OR title LIKE :title OR author LIKE :author", 
             {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'}).fetchall()
-        results = []
-        for result in searchResults:
-            book = dict()
-            book['id'] = result[0]
-            book['isbn'] = result[1]
-            book['title'] = result[2]
-            book['author'] = result[3]
-            book['years'] = result[4]
-            results.append(book)
 
-        # print(results)
-        return render_template('index.html', results=results, index=True)
+        return render_template('index.html', results=searchResults, index=True)
 
     return render_template('index.html', index=True)
 
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    # Check if user have an account and is connected
     if session.get('username'):
         return redirect(url_for('index'))
 
-    username = request.form.get('username')
-    email = request.form.get("email")
-    password = request.form.get("password")
-
-    hashedPassword = set_password(f'{password}')
-
     if request.method == 'POST':
+        # Get form data
+        username = request.form.get('username')
+        email = request.form.get("email")
+        password = request.form.get("password")
+        # Hash the password
+        hashedPassword = set_password(f'{password}')
+
         db.execute("INSERT  INTO users (username, email, password) VALUES (:username, :email, :password)",
             {"username": username, "email": email, "password": hashedPassword})
         db.commit()
-        # print(f'{username, email, hashedPassword}')
+
         return redirect(url_for('login'))
     else:
         return render_template('register.html', title="Register", register=True)
@@ -75,27 +67,21 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    # Check to see if user is connected and redirect to index
     if session.get('username'):
         return redirect(url_for('index'))
     
-    username = request.form.get('username')
-    password = request.form.get('password')
-    
     if request.method == 'POST':
-        userData = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'})
-        user = dict()
-        for item in userData:
-            u = dict()
-            u['user_id'] = item[0]
-            u['username'] = item[1]
-            u['password'] = item[3]
-            user = u
-        # print(user["password"])
-        hashedPass = user["password"]
-        
+        # Get form data
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Check if the given password and the hashed one match then let it log in
+        user = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'}).fetchone()
+        hashedPass = user.password
         if user and get_password(hashedPass, password):
-            session['user_id'] = user["user_id"]
-            session['username'] = user["username"]
+            session['user_id'] = user.id
+            session['username'] = user.username
 
             return redirect(url_for('index'))
 
@@ -103,6 +89,7 @@ def login():
 
 @app.route('/logout')
 def logout():
+    # Clearing session to logout
     session['user_id'] = False
     session.pop('username', None)
     return redirect(url_for('index'))
@@ -110,61 +97,45 @@ def logout():
 
 @app.route('/book/<int:id>', methods=['GET', 'POST'])
 def book(id):
-    bookResults = db.execute("SELECT * FROM books WHERE id = :id", {"id": id}).fetchall()
-   
-    book = []
-    for item in bookResults:
-        i = dict()
-        i['book_id'] = item[0]
-        i['title'] = item[1]
-        i['author'] = item[2]
-        i['years'] = item[3]
-        i['isbn'] = item[4]
-        i['review_count'] = item[5]
-        i['average_score'] = item[6]
-        book.append(i)
-    # print(book)
+    # Get book data from the database for display
+    book = db.execute("SELECT * FROM books WHERE id = :id", {"id": id}).fetchall()
 
-    reviewResults = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": id}).fetchall()
-    reviews = []
-    for item in reviewResults:
-        i = dict()
-        i['rating'] = item[1]
-        i['comments'] = item[2]
-        i['author'] = item[3]
-        reviews.append(i)
-    # print(session)
+    # Get reviews data from the database for display
+    reviews = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": id}).fetchall()
 
-    isbn = book[0]['isbn']
+    # Make request to goodreads api to get data
+    isbn = book[0][4]
     res = requests.get(f"https://www.goodreads.com/book/review_counts.json?key={GOODREADS_KEY}&isbns={isbn}")
     if res.status_code == 200:
         data = res.json()
+        # Get specific data needed to send in template
         average_rating = data['books'][0]['average_rating']
         work_ratings_count = data['books'][0]['work_ratings_count']
-
         goodreadsData = {"average_rating": average_rating, "work_ratings_count": work_ratings_count}
         
     if request.method == 'POST' and session['user_id'] != False:
+        # Get form data
         ratValue = request.form.get('rat')
         comment = request.form.get('comment')
         book_id = id
         user_id = session['user_id']
         username = session['username']
         
+        # Check if user has reviewed this book before perform any operation
         bookIdCheck = db.execute("SELECT book_id FROM reviews WHERE user_id = :user_id", {"user_id": user_id}).fetchone()
-
         if bookIdCheck == None or bookIdCheck[0] != book_id:
+            # Insert review in the database
             db.execute("INSERT INTO reviews (rating, comments, author, user_id, book_id) VALUES (:rating, :comments, :author, :user_id, :book_id)", 
                 {"rating": ratValue, "comments": comment, "author": username, "user_id": user_id, "book_id": book_id})
             db.commit()
-
-            review_count = bookResults[0][5]
+            # Updating the specific book review_count and average_score
+            review_count = book[0][5]
             avg = db.execute("SELECT AVG(rating) FROM reviews WHERE book_id = :book_id", {"book_id": book_id}).fetchone()
-            # print(f'Avg = {avg[0]}')
             db.execute("UPDATE books SET review_count = :plusOne, average_score = :avg WHERE id = :book_id", 
                 {"plusOne": review_count+1, "avg": avg[0], "book_id": book_id})
             db.commit()
         else:
+            # Return back to book page if user already reviewed the book
             print("You already commented on this book!")
             return redirect(url_for('book', id=book_id))
 
@@ -172,8 +143,9 @@ def book(id):
 
 @app.route('/api/<string:isbn>')
 def isbn_api(isbn):
+    # Get book base on isbn
     isbn = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
-    # print(isbn)
+    # Seriliaze data to json format
     return jsonify({
         "title": isbn.title,
         "author": isbn.author,
