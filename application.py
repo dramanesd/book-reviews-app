@@ -112,7 +112,7 @@ def login():
 def logout():
     # Clearing session to logout
     session['user_id'] = False
-    session.pop('username', None)
+    session['username'] = None
     return redirect(url_for('index'))
 
 @app.route('/book/<int:id>', methods=['GET', 'POST'])
@@ -145,7 +145,8 @@ def book(id):
     # Submit a review the database
     if request.method == 'POST':
         #Check if user log in before submiting review
-        if session != {}:
+        print(f"sessionstate: {session}")
+        if session != {} and session['username'] != None:
             # Get form data
             ratValue = request.form.get('rat')
             comment = request.form.get('comment')
