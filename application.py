@@ -30,25 +30,23 @@ db = scoped_session(sessionmaker(bind=engine))
 
 @app.errorhandler(404)
 def page_not_found(e):
-    # note that we set the 404 status explicitly
+    # note that this set the 404 status explicitly
     return render_template('404.html'), 404
 
 @app.route('/404')
 def page_404():
-    # note that we set the 404 status explicitly
     return render_template('404.html'), 404
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
 
+    # Perform the search query
     if request.method == 'POST':
-        # Perform the search query
         searchTerm = request.form.get('search')
         searchResults = db.execute("SELECT id, isbn, title, author, years FROM books WHERE isbn LIKE :isbn OR title LIKE :title OR author LIKE :author", 
             {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'}).fetchall()
 
         results = None  if len(searchResults) == 0 else searchResults
-        # print(session['user_id'])
 
         return render_template('index.html', results=results, index=True)
 
@@ -59,7 +57,7 @@ def register():
     # Check if user have an account and is connected
     if session.get('username'):
         return redirect(url_for('index'))
-
+    # Register the user
     if request.method == 'POST':
         # Get form data
         username = request.form.get('username')
@@ -89,7 +87,7 @@ def login():
         # Get form data
         username = request.form.get('username')
         password = request.form.get('password')
-
+        #Get user from database
         try:
             user = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'}).fetchone()   
             hashedPass = user.password
@@ -122,20 +120,20 @@ def book(id):
     try:
         # Get book data from the database for display
         book = db.execute("SELECT * FROM books WHERE id = :id", {"id": id}).fetchall()
-        # print(book)
+        
         # Get reviews data from the database for display
         reviews = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": id}).fetchall()
     except Exception:
         return redirect(url_for('page_404'))
     
+    # Make request to goodreads api to get data
     if len(book) != 0:
-        # Make request to goodreads api to get data
         try:
             isbn = book[0][4]
             res = requests.get(f"https://www.goodreads.com/book/review_counts.json?key={GOODREADS_KEY}&isbns={isbn}")
             if res.status_code == 200:
                 data = res.json()
-                # Get specific data needed to send in template
+                # Get specific data needed to send to template
                 average_rating = data['books'][0]['average_rating']
                 work_ratings_count = data['books'][0]['work_ratings_count']
                 goodreadsData = {"average_rating": average_rating, "work_ratings_count": work_ratings_count}
@@ -144,9 +142,9 @@ def book(id):
     else:
         return redirect(url_for('page_404'))
 
-    # print(f"Session state: {session}")
-
+    # Submit a review the database
     if request.method == 'POST':
+        #Check if user log in before submiting review
         if session != {}:
             # Get form data
             ratValue = request.form.get('rat')
@@ -155,11 +153,12 @@ def book(id):
             user_id = session['user_id']
             username = session['username']
             
+            # Get book ids from database
+            bookIds = db.execute("SELECT book_id FROM reviews WHERE user_id = :user_id", {"user_id": user_id}).fetchall()
+            bookIdsList = [value for value, in bookIds]
+
             # Check if user has reviewed this book before perform any operation
-            bookIdCheck = db.execute("SELECT book_id FROM reviews WHERE user_id = :user_id", {"user_id": user_id}).fetchall()
-            book_ids_list = [value for value, in bookIdCheck]
-            
-            if bookIdCheck != None and book_id not in book_ids_list:
+            if bookIds != None and book_id not in bookIdsList:
                 # Insert review in the database
                 db.execute("INSERT INTO reviews (rating, comments, author, user_id, book_id) VALUES (:rating, :comments, :author, :user_id, :book_id)", 
                     {"rating": ratValue, "comments": comment, "author": username, "user_id": user_id, "book_id": book_id})
@@ -187,14 +186,18 @@ def isbn_api(isbn):
     try:
         # Get book base on isbn
         isbn = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+
         # Seriliaze data to json format
-        return jsonify({
-            "title": isbn.title,
-            "author": isbn.author,
-            "year": isbn.years,
-            "isbn": isbn.isbn,
-            "review_count": isbn.review_count,
-            "average_score": isbn.average_score
-        })
+        if isbn != None:
+            return jsonify({
+                    "title": isbn.title,
+                    "author": isbn.author,
+                    "year": isbn.years,
+                    "isbn": isbn.isbn,
+                    "review_count": isbn.review_count,
+                    "average_score": str(isbn.average_score)
+                })
+        else:
+            return jsonify({"No book found for this isbn number"})
     except Exception:
          return jsonify({"error": "Sorry this book don't existe"})
