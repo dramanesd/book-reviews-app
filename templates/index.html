@@ -16,7 +16,7 @@
         {% if results == None %}
           <p class="text-center">There are no matching with this search term. Try agian</p>
         {% endif %}
-        {% if results != None %}
+        {% if results and results != None %}
           <p>found {{ results|length }} results</p>
           {% for item in results %}
             <a href="{{ url_for('book', id=item.id) }}">

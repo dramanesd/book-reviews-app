@@ -43,6 +43,20 @@
       </nav>
     </header>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+          {% for category, message in messages %}
+          <div class="container">
+            <div class="justify-content-end">
+                <div class="text-center alert alert-{{category}}">
+                  <p>{{ message }}</p>
+                </div>
+            </div>
+          </div>
+          {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     {% block content %}
       
     {% endblock %}

@@ -1,7 +1,7 @@
 import os
 import requests
 
-from flask import Flask, session, render_template, url_for, request, redirect, jsonify
+from flask import Flask, session, render_template, url_for, request, redirect, jsonify, flash
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -28,9 +28,19 @@ Session(app)
 engine = create_engine(os.getenv("DATABASE_URL_LOCAL"))
 db = scoped_session(sessionmaker(bind=engine))
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
+
+@app.route('/404')
+def page_404():
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+
     if request.method == 'POST':
         # Perform the search query
         searchTerm = request.form.get('search')
@@ -38,12 +48,11 @@ def index():
             {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'}).fetchall()
 
         results = None  if len(searchResults) == 0 else searchResults
-        print(results)
+        # print(session['user_id'])
 
         return render_template('index.html', results=results, index=True)
 
     return render_template('index.html', index=True)
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -58,15 +67,17 @@ def register():
         password = request.form.get("password")
         # Hash the password
         hashedPassword = set_password(f'{password}')
+        try:
+            db.execute("INSERT  INTO users (username, email, password) VALUES (:username, :email, :password)",
+                {"username": username, "email": email, "password": hashedPassword})
+            db.commit()
+            flash("You have been registered, Log in now", "success")
+            return redirect(url_for('login'))
+        except Exception:
+            flash("You have an account", "danger")
+            return redirect(url_for('register'))
 
-        db.execute("INSERT  INTO users (username, email, password) VALUES (:username, :email, :password)",
-            {"username": username, "email": email, "password": hashedPassword})
-        db.commit()
-
-        return redirect(url_for('login'))
-    else:
-        return render_template('register.html', title="Register", register=True)
-
+    return render_template('register.html', title="Register", register=True)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -79,14 +90,23 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
+        try:
+            user = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'}).fetchone()   
+            hashedPass = user.password
+        except Exception:
+            flash("Sorry the Username don't existe", "danger")
+            return redirect(url_for('login'))
+
         # Check if the given password and the hashed one match then let it log in
-        user = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'}).fetchone()
-        hashedPass = user.password
-        if user and get_password(hashedPass, password):
+        if get_password(hashedPass, password):
             session['user_id'] = user.id
             session['username'] = user.username
 
+            flash(f"Welcome back! {user.username}", "success")
             return redirect(url_for('index'))
+        else:
+            flash("Invalid Password", "danger")
+            return redirect(url_for('login'))
 
     return render_template('login.html', title="Login", login=True)
 
@@ -97,63 +117,84 @@ def logout():
     session.pop('username', None)
     return redirect(url_for('index'))
 
-
 @app.route('/book/<int:id>', methods=['GET', 'POST'])
 def book(id):
-    # Get book data from the database for display
-    book = db.execute("SELECT * FROM books WHERE id = :id", {"id": id}).fetchall()
+    try:
+        # Get book data from the database for display
+        book = db.execute("SELECT * FROM books WHERE id = :id", {"id": id}).fetchall()
+        # print(book)
+        # Get reviews data from the database for display
+        reviews = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": id}).fetchall()
+    except Exception:
+        return redirect(url_for('page_404'))
+    
+    if len(book) != 0:
+        # Make request to goodreads api to get data
+        try:
+            isbn = book[0][4]
+            res = requests.get(f"https://www.goodreads.com/book/review_counts.json?key={GOODREADS_KEY}&isbns={isbn}")
+            if res.status_code == 200:
+                data = res.json()
+                # Get specific data needed to send in template
+                average_rating = data['books'][0]['average_rating']
+                work_ratings_count = data['books'][0]['work_ratings_count']
+                goodreadsData = {"average_rating": average_rating, "work_ratings_count": work_ratings_count}
+        except:
+            goodreadsData = None
+    else:
+        return redirect(url_for('page_404'))
 
-    # Get reviews data from the database for display
-    reviews = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": id}).fetchall()
+    # print(f"Session state: {session}")
 
-    # Make request to goodreads api to get data
-    isbn = book[0][4]
-    res = requests.get(f"https://www.goodreads.com/book/review_counts.json?key={GOODREADS_KEY}&isbns={isbn}")
-    if res.status_code == 200:
-        data = res.json()
-        # Get specific data needed to send in template
-        average_rating = data['books'][0]['average_rating']
-        work_ratings_count = data['books'][0]['work_ratings_count']
-        goodreadsData = {"average_rating": average_rating, "work_ratings_count": work_ratings_count}
-        
-    if request.method == 'POST' and session['user_id'] != False:
-        # Get form data
-        ratValue = request.form.get('rat')
-        comment = request.form.get('comment')
-        book_id = id
-        user_id = session['user_id']
-        username = session['username']
-        
-        # Check if user has reviewed this book before perform any operation
-        bookIdCheck = db.execute("SELECT book_id FROM reviews WHERE user_id = :user_id", {"user_id": user_id}).fetchone()
-        if bookIdCheck == None or bookIdCheck[0] != book_id:
-            # Insert review in the database
-            db.execute("INSERT INTO reviews (rating, comments, author, user_id, book_id) VALUES (:rating, :comments, :author, :user_id, :book_id)", 
-                {"rating": ratValue, "comments": comment, "author": username, "user_id": user_id, "book_id": book_id})
-            db.commit()
-            # Updating the specific book review_count and average_score
-            review_count = book[0][5]
-            avg = db.execute("SELECT AVG(rating) FROM reviews WHERE book_id = :book_id", {"book_id": book_id}).fetchone()
-            db.execute("UPDATE books SET review_count = :plusOne, average_score = :avg WHERE id = :book_id", 
-                {"plusOne": review_count+1, "avg": avg[0], "book_id": book_id})
-            db.commit()
+    if request.method == 'POST':
+        if session != {}:
+            # Get form data
+            ratValue = request.form.get('rat')
+            comment = request.form.get('comment')
+            book_id = id
+            user_id = session['user_id']
+            username = session['username']
+            
+            # Check if user has reviewed this book before perform any operation
+            bookIdCheck = db.execute("SELECT book_id FROM reviews WHERE user_id = :user_id", {"user_id": user_id}).fetchall()
+            book_ids_list = [value for value, in bookIdCheck]
+            
+            if bookIdCheck != None and book_id not in book_ids_list:
+                # Insert review in the database
+                db.execute("INSERT INTO reviews (rating, comments, author, user_id, book_id) VALUES (:rating, :comments, :author, :user_id, :book_id)", 
+                    {"rating": ratValue, "comments": comment, "author": username, "user_id": user_id, "book_id": book_id})
+                db.commit()
+                # Updating the specific book review_count and average_score
+                review_count = book[0][5]
+                avg = db.execute("SELECT AVG(rating) FROM reviews WHERE book_id = :book_id", {"book_id": book_id}).fetchone()
+                avg_score = round(avg[0], 2)
+                db.execute("UPDATE books SET review_count = :plusOne, average_score = :avg WHERE id = :book_id", 
+                    {"plusOne": review_count+1, "avg": avg_score, "book_id": book_id})
+                db.commit()
+                flash("Your review has been saved!", "success")
+            else:
+                # Return back to book page if user already reviewed the book
+                flash("You already commented on this book!", "danger")
+                return redirect(url_for('book', id=book_id))
         else:
-            # Return back to book page if user already reviewed the book
-            print("You already commented on this book!")
-            return redirect(url_for('book', id=book_id))
+            flash("You must be log in to be able to review this book", "warning")
+            return redirect(url_for('book', id=id))
 
     return render_template('book.html', id=id, bookDetails=book, goodreadsData=goodreadsData, reviews=reviews, book=True)
-
+    
 @app.route('/api/<string:isbn>')
 def isbn_api(isbn):
-    # Get book base on isbn
-    isbn = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
-    # Seriliaze data to json format
-    return jsonify({
-        "title": isbn.title,
-        "author": isbn.author,
-        "year": isbn.years,
-        "isbn": isbn.isbn,
-        "review_count": isbn.review_count,
-        "average_score": isbn.average_score
-    })
+    try:
+        # Get book base on isbn
+        isbn = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+        # Seriliaze data to json format
+        return jsonify({
+            "title": isbn.title,
+            "author": isbn.author,
+            "year": isbn.years,
+            "isbn": isbn.isbn,
+            "review_count": isbn.review_count,
+            "average_score": isbn.average_score
+        })
+    except Exception:
+         return jsonify({"error": "Sorry this book don't existe"})

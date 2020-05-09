@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS books (
   years VARCHAR NOT NULL,
   isbn VARCHAR NOT NULL,
   review_count INTEGER DEFAULT 0,
-  average_score  INTEGER DEFAULT 0
+  average_score  DECIMAL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS reviews (
