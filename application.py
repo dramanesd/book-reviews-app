@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from dotenv import load_dotenv
 
-from utils import set_password, get_password
+from utils import hash_password, check_password
 
 load_dotenv()
 
@@ -64,7 +64,7 @@ def register():
         email = request.form.get("email")
         password = request.form.get("password")
         # Hash the password
-        hashedPassword = set_password(f'{password}')
+        hashedPassword = hash_password(f'{password}')
         try:
             db.execute("INSERT  INTO users (username, email, password) VALUES (:username, :email, :password)",
                 {"username": username, "email": email, "password": hashedPassword})
@@ -90,13 +90,13 @@ def login():
         #Get user from database
         try:
             user = db.execute("SELECT * FROM users WHERE username = :username", {"username": f'{username}'}).fetchone()   
-            hashedPass = user.password
+            hashedPassword = user.password
         except Exception:
             flash("Sorry the Username don't existe", "danger")
             return redirect(url_for('login'))
 
         # Check if the given password and the hashed one match then let it log in
-        if get_password(hashedPass, password):
+        if check_password(hashedPassword, password):
             session['user_id'] = user.id
             session['username'] = user.username
 
@@ -129,7 +129,7 @@ def book(id):
     # Make request to goodreads api to get data
     if len(book) != 0:
         try:
-            isbn = book[0][4]
+            isbn = book[0].isbn
             res = requests.get(f"https://www.goodreads.com/book/review_counts.json?key={GOODREADS_KEY}&isbns={isbn}")
             if res.status_code == 200:
                 data = res.json()
@@ -144,7 +144,7 @@ def book(id):
 
     # Submit a review the database
     if request.method == 'POST':
-        #Check if user log in before submiting review
+        #Check if user is loged in before submiting review
         print(f"sessionstate: {session}")
         if session != {} and session['username'] != None:
             # Get form data
@@ -165,7 +165,7 @@ def book(id):
                     {"rating": ratValue, "comments": comment, "author": username, "user_id": user_id, "book_id": book_id})
                 db.commit()
                 # Updating the specific book review_count and average_score
-                review_count = book[0][5]
+                review_count = book[0].review_count
                 avg = db.execute("SELECT AVG(rating) FROM reviews WHERE book_id = :book_id", {"book_id": book_id}).fetchone()
                 avg_score = round(avg[0], 2)
                 db.execute("UPDATE books SET review_count = :plusOne, average_score = :avg WHERE id = :book_id", 
