@@ -1,0 +1,259 @@
+@import 'https://fonts.googleapis.com/css2?family=Roboto&display=swap';
+@import 'https://fonts.googleapis.com/css2?family=Oswald&display=swap';
+
+$darkblue : #2F9ED0;
+$lightblue : #8BD6F8;
+$gray : #F1F2F7;
+$yellow : #F0BA05;
+$txt-gray: #919191;
+
+%default-btn {
+  // width: 250px;
+  font-weight: bold;
+  padding: .5rem 1rem;
+  border-style: none;
+  border-radius: 5px;
+  color: white;
+  background-color: $lightblue;
+}
+
+// End of variables
+
+// Main
+body {
+  font-family: Roboto, sans-serif;
+}
+h1, h2, h3, h4, h5 {
+  font-family: Oswald, sans-serif;
+}
+a:hover {
+  text-decoration: none;
+}
+.primary-btn {
+  @extend %default-btn;
+  background-color: $darkblue;
+}
+.primary-btn:hover {
+  @extend %default-btn;
+  background-color: $lightblue;
+  cursor: pointer;
+}
+.row {
+  margin: 0;
+}
+
+// Navbar styles
+.bg-light {
+  background-color: $lightblue!important;
+}
+.navbar {
+  padding: 0;
+}
+.navbar-light {
+ .nav-brand {
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    .book-icon {
+      margin-right: 1rem;
+      margin-left: 1rem;
+    }
+  }
+  .nav-brand:hover {
+    color: $darkblue;
+  }
+  .navbar-nav {
+    .nav-link {
+      color: white;
+      padding: 1rem 20px;
+    }
+    .nav-link:hover {
+      color: white;
+      background-color: $darkblue;
+    }
+    .nav-link.active {
+      color: white;
+      background-color: $darkblue;
+    }
+    .nav-link:focus {
+      color: white;
+    }
+  }
+}
+
+// Jumbotron
+.jumbotron {
+  padding: 0;
+  background-image: url('/static/images/j-bg.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  color: white;
+  border-radius: 0;
+  .blur {
+    padding: 4rem 2rem;
+    background-color: #00000047;
+  }
+  .search-form {
+    .form-control {
+      border: none;
+      background-color: $gray;
+      padding: .5rem .75rem;
+    }
+    input.form-control {
+      width: 300px;;
+    }
+  }
+}
+
+// Book list styles
+a {
+  .book-item {
+    display: flex;
+    flex-direction: row;
+    border: 2px solid $lightblue;
+    padding: 1rem 2rem;
+    .book-img {
+      width: 80px;
+      height: 80px;
+      margin-right: 1rem;
+    }
+    .book-title {
+      color: $darkblue;
+    }
+    .book-author {
+      color: $txt-gray;
+    }
+  }
+  .book-item:hover {
+    box-shadow: 0px 8px 15px rgba(173, 173, 173, 0.562);
+  }
+}
+
+p.rating-view {
+  .svg-inline--fa {
+    color: $txt-gray!important;
+  }
+  .svg-inline--fa.active {
+    color: $yellow!important;
+  }
+}
+
+// Book details
+.book-details {
+  display: flex;
+  flex-direction: row;
+}
+.card {
+  border: none;
+}
+.card-img {
+  margin: 1.5rem 0;
+}
+.card-body {
+  h3 {
+    color: $darkblue;
+  }
+}
+
+// Goodreads
+.goodreads {
+  margin-bottom: 3rem;
+  h4 {
+    color: $darkblue;
+  }
+}
+
+// review section
+.form-rating {
+  float:left;
+  margin-bottom: 1rem;
+}
+
+/* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
+  follow these rules. Every browser that supports :checked also supports :not(), so
+  it doesn’t make the test unnecessarily selective */
+.form-rating:not(:checked) > input {
+  position:absolute;
+  top:-9999px;
+  clip:rect(0,0,0,0);
+}
+
+.form-rating:not(:checked) > label {
+  float:right;
+  width:1em;
+  /* padding:0 .1em; */
+  overflow:hidden;
+  white-space:nowrap;
+  cursor:pointer;
+  font-size:150%;
+  /* line-height:1.2; */
+  color:$txt-gray;
+}
+.form-rating:not(:checked) > label:before {
+  content: ' ★ ';
+}
+.form-rating > input:checked ~ label {
+  color: $yellow;
+}
+.form-rating:not(:checked) > label:hover,
+.form-rating:not(:checked) > label:hover ~ label {
+  color: $yellow;
+}
+.form-rating > input:checked + label:hover,
+.form-rating > input:checked + label:hover ~ label,
+.form-rating > input:checked ~ label:hover,
+.form-rating > input:checked ~ label:hover ~ label,
+.form-rating > label:hover ~ input:checked ~ label {
+  color: $yellow;
+}
+.form-rating > label:active {
+  position:relative;
+  top:2px;
+  left:2px;
+}
+.reviews {
+  form button.primary-btn {
+    width: 200px;
+    margin-bottom: 1rem;
+  }
+}
+.card {
+  .letter-avatar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background-color: $darkblue;
+    span {
+      font-size: 25px;
+      font-weight: bold;
+      color: white;
+    }
+  }
+}
+
+// Login Form
+.auth-form {
+  h1 {
+    text-align: center;
+    margin: 3rem 0;
+  }
+  form input {
+    height: calc(1.5em + .75rem + 4px);
+    background-color:$gray;
+    border: none;
+    margin-bottom: 1.5rem;
+  }
+  form button.primary-btn {
+    width: 160px;
+  }
+  form input:focus,  form input:active {
+    background-color:$gray;
+    border: none;
+  }
+}

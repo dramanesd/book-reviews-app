@@ -3,56 +3,156 @@
 {% block content %}
   <div class="row">
     <div class="col-md-6 offset-md-3">
-      <h1 class="mt-3">Book Details</h1>
+      <h1 class="mt-5">Book Details</h1>
       {% for item in bookDetails %}
-        <h3>{{ item.title }}</h3>
-        <p>Author: {{ item.author }}</p>
-        <p>ISBN: {{ item.isbn }}</p>
-        <p>Year: {{ item.years }}</p>
-        <p>Review Count: {{ item.review_count }}</p>
-        <p>Review: {{ item.average_score }}</p>
-        {% if goodreadsData != None %}
-          <h4>Reviews from GoodReads </h4>
-          <p>Number of review: {{ goodreadsData.work_ratings_count }}</p>
-          <p>Ratings: {{ goodreadsData.average_rating }}</p>
-        {% endif %}
+        <div class="card mt-4 mb-4">
+          <div class="row no-gutters book-details">
+            <div class="col-md-4 ">
+              <img class="book-img card-img" src="/static/images/book-img.png" alt="Book image">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h3>{{ item.title }}</h3>
+                <p>By {{ item.author }}</p>
+                <p>Published in {{ item.years }}</p>
+                <p>ISBN: {{ item.isbn }}</p>
+                {% if item.average_score == 0 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.average_score >= 1 and item.average_score < 2 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.average_score >= 2 and item.average_score < 3 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.average_score >= 3 and item.average_score < 4 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.average_score >= 4 and item.average_score < 5 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.average_score >= 5 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                  </p>
+                {% endif %}
+                <p>{{ item.review_count }} Review(s)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="goodreads">
+          {% if goodreadsData != None %}
+            <h4>Reviews from GoodReads </h4>
+            <p>{{ goodreadsData.average_rating }} Average rating</p>
+            <p>{{ goodreadsData.work_ratings_count }} Reviews</p>
+          {% endif %}
+        </div>
       {% endfor %}
       <div class="reviews">
-        <h3>Reviews this Book</h3>
+        <p>Leave a review on {{ bookDetails[0].title }}</p>
         <form class="my-2 my-lg-0" action="{{ url_for('book', id=id)}}" method="post">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="rat" id="inlineRadio1" value="1" required>
-            <label class="form-check-label" for="inlineRadio1">1</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="rat" id="inlineRadio2" value="2" required>
-            <label class="form-check-label" for="inlineRadio2">2</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="rat" id="inlineRadio3" value="3" required>
-            <label class="form-check-label" for="inlineRadio3">3</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="rat" id="inlineRadio4" value="4" required>
-            <label class="form-check-label" for="inlineRadio4">4</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="rat" id="inlineRadio5" value="5" required>
-            <label class="form-check-label" for="inlineRadio5">5</label>
+          <div class="form-rating">
+            <input type="radio" id="star5" name="rating" value="5" /><label for="star5" title="Meh">5 stars</label>
+            <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="Kinda bad">4 stars</label>
+            <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="Kinda bad">3 stars</label>
+            <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="Sucks big tim">2 stars</label>
+            <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="Sucks big time">1 star</label>
           </div>
           <div class="form-group">
-            <input class="form-control mr-sm-2" type="text" name="comment" placeholder="Comment" aria-label="Comment" required>
+            <textarea class="form-control mr-sm-2" name="comment" placeholder="Say something here!" rows="3" required></textarea>
           </div>
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Comment</button>
+          <button class="primary-btn" type="submit">Send</button>
         </form>
       </div>
-      <div>
-        {% for item in reviews %}
-          <p>{{ item.comments }}</p>
-          <p>{{ item.rating }}</p>
-          <p>{{ item.author }}</p>
-        {% endfor %}
-      </div>
+      {% for item in reviews %}
+        <div class="card">
+          <div class="row">
+            <div class="col-md-1">
+              <p class="card-img letter-avatar">
+                <span>{{ item.author[0] }}</span>
+              </p>
+            </div>
+            <div class="col-md-8">
+              <div class="card-body review-content">
+              
+                <p>{{ item.author }}</p>
+                {% if item.rating == 1 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.rating == 2 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.rating == 3 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.rating == 4 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star"></i></span>
+                  </p>
+                {% elif item.rating == 5 %}
+                  <p class="rating-view">
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                    <span><i class="fas fa-star active"></i></span>
+                  </p>
+                {% endif %}
+                <p>{{ item.comments }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
   </div>
 {% endblock %}

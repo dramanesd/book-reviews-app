@@ -2,30 +2,42 @@
 
 {% block content %}
 
-  <div class="container">
-    <h1 class="text-center mt-5 mb-5">Search A Book Here</h1>
-    <P class="text-center">Type in book title, author name or isbn number</P>
-    <div class="row justify-content-center">
-      <form class="form-inline my-2 my-lg-0" action="{{ url_for('index')}}" method="post">
-        <input class="form-control mr-sm-2" type="search" name="search" placeholder="Search book here" aria-label="Search" required>
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-      </form>
+  <div class="">
+    <div class="jumbotron">
+      <div class="blur">
+        <h1 class="text-center mb-5">Search A Book Here</h1>
+        <P class="text-center mb-5">Looking For Your Favorite Book ?<br> 
+          Type title, author name or isbn down</P>
+        <div class="row justify-content-center">
+          <form class="search-form form-inline my-2 my-lg-0" action="{{ url_for('index')}}" method="post">
+            <input class="form-control mr-sm-2" type="search" name="search" placeholder="Search book..." aria-label="Search" required>
+            <button class="primary-btn  my-2 my-sm-0" type="submit">Get Your Book</button>
+          </form>
+        </div>
+      </div>
     </div>
-    <div class="row justify-content-center mt-5">
-      <div class="col-md-6">
-        {% if results == None %}
-          <p class="text-center">There are no matching with this search term. Try agian</p>
-        {% endif %}
-        {% if results and results != None %}
-          <p>found {{ results|length }} results</p>
-          {% for item in results %}
-            <a href="{{ url_for('book', id=item.id) }}">
-              <p>{{ item.title }}</p>
-              <p>{{ item.author }}</p>
-            </a>
-            <hr>
-          {% endfor %}
-        {% endif %}
+    <div class="container">
+      <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+          {% if results == None %}
+            <p class="text-center">There are no matching with this search term. Try agian</p>
+          {% endif %}
+          {% if results and results != None %}
+            <p>found {{ results|length }} results</p>
+            {% for item in results %}
+              <a href="{{ url_for('book', id=item.id) }}">
+                <div class="book-item">
+                  <img class="book-img" src="/static/images/book-img.png" alt="Book image">
+                  <div class="book-content">
+                    <h4 class="book-title">{{ item.title }}</h4>
+                    <p class="book-author">by {{ item.author }}</p>
+                  </div>
+                </div>
+              </a>
+              <hr>
+            {% endfor %}
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>

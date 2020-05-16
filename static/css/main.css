@@ -1,3 +1,241 @@
+@charset "UTF-8";
+@import 'https://fonts.googleapis.com/css2?family=Roboto&display=swap';
+@import 'https://fonts.googleapis.com/css2?family=Oswald&display=swap';
+.primary-btn:hover, .primary-btn {
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-style: none;
+  border-radius: 5px;
+  color: white;
+  background-color: #8BD6F8;
+}
 
+body {
+  font-family: Roboto, sans-serif;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: Oswald, sans-serif;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.primary-btn {
+  background-color: #2F9ED0;
+}
+
+.primary-btn:hover {
+  background-color: #8BD6F8;
+  cursor: pointer;
+}
+
+.row {
+  margin: 0;
+}
+
+.bg-light {
+  background-color: #8BD6F8 !important;
+}
+
+.navbar {
+  padding: 0;
+}
+
+.navbar-light .nav-brand {
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  color: white;
+}
+.navbar-light .nav-brand .book-icon {
+  margin-right: 1rem;
+  margin-left: 1rem;
+}
+.navbar-light .nav-brand:hover {
+  color: #2F9ED0;
+}
+.navbar-light .navbar-nav .nav-link {
+  color: white;
+  padding: 1rem 20px;
+}
+.navbar-light .navbar-nav .nav-link:hover {
+  color: white;
+  background-color: #2F9ED0;
+}
+.navbar-light .navbar-nav .nav-link.active {
+  color: white;
+  background-color: #2F9ED0;
+}
+.navbar-light .navbar-nav .nav-link:focus {
+  color: white;
+}
+
+.jumbotron {
+  padding: 0;
+  background-image: url("/static/images/j-bg.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  color: white;
+  border-radius: 0;
+}
+.jumbotron .blur {
+  padding: 4rem 2rem;
+  background-color: #00000047;
+}
+.jumbotron .search-form .form-control {
+  border: none;
+  background-color: #F1F2F7;
+  padding: 0.5rem 0.75rem;
+}
+.jumbotron .search-form input.form-control {
+  width: 300px;
+}
+
+a .book-item {
+  display: flex;
+  flex-direction: row;
+  border: 2px solid #8BD6F8;
+  padding: 1rem 2rem;
+}
+a .book-item .book-img {
+  width: 80px;
+  height: 80px;
+  margin-right: 1rem;
+}
+a .book-item .book-title {
+  color: #2F9ED0;
+}
+a .book-item .book-author {
+  color: #919191;
+}
+a .book-item:hover {
+  box-shadow: 0px 8px 15px rgba(173, 173, 173, 0.562);
+}
+
+p.rating-view .svg-inline--fa {
+  color: #919191 !important;
+}
+p.rating-view .svg-inline--fa.active {
+  color: #F0BA05 !important;
+}
+
+.book-details {
+  display: flex;
+  flex-direction: row;
+}
+
+.card {
+  border: none;
+}
+
+.card-img {
+  margin: 1.5rem 0;
+}
+
+.card-body h3 {
+  color: #2F9ED0;
+}
+
+.goodreads {
+  margin-bottom: 3rem;
+}
+.goodreads h4 {
+  color: #2F9ED0;
+}
+
+.form-rating {
+  float: left;
+  margin-bottom: 1rem;
+}
+
+/* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
+  follow these rules. Every browser that supports :checked also supports :not(), so
+  it doesn’t make the test unnecessarily selective */
+.form-rating:not(:checked) > input {
+  position: absolute;
+  top: -9999px;
+  clip: rect(0, 0, 0, 0);
+}
+
+.form-rating:not(:checked) > label {
+  float: right;
+  width: 1em;
+  /* padding:0 .1em; */
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 150%;
+  /* line-height:1.2; */
+  color: #919191;
+}
+
+.form-rating:not(:checked) > label:before {
+  content: " ★ ";
+}
+
+.form-rating > input:checked ~ label {
+  color: #F0BA05;
+}
+
+.form-rating:not(:checked) > label:hover,
+.form-rating:not(:checked) > label:hover ~ label {
+  color: #F0BA05;
+}
+
+.form-rating > input:checked + label:hover,
+.form-rating > input:checked + label:hover ~ label,
+.form-rating > input:checked ~ label:hover,
+.form-rating > input:checked ~ label:hover ~ label,
+.form-rating > label:hover ~ input:checked ~ label {
+  color: #F0BA05;
+}
+
+.form-rating > label:active {
+  position: relative;
+  top: 2px;
+  left: 2px;
+}
+
+.reviews form button.primary-btn {
+  width: 200px;
+  margin-bottom: 1rem;
+}
+
+.card .letter-avatar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 25px;
+  background-color: #2F9ED0;
+}
+.card .letter-avatar span {
+  font-size: 25px;
+  font-weight: bold;
+  color: white;
+}
+
+.auth-form h1 {
+  text-align: center;
+  margin: 3rem 0;
+}
+.auth-form form input {
+  height: calc(1.5em + .75rem + 4px);
+  background-color: #F1F2F7;
+  border: none;
+  margin-bottom: 1.5rem;
+}
+.auth-form form button.primary-btn {
+  width: 160px;
+}
+.auth-form form input:focus, .auth-form form input:active {
+  background-color: #F1F2F7;
+  border: none;
+}
 
 /*# sourceMappingURL=main.css.map */

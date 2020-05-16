@@ -47,7 +47,6 @@ def index():
             {"isbn": f'%{searchTerm}%', "title": f'%{searchTerm}%', "author": f'%{searchTerm}%'}).fetchall()
 
         results = None  if len(searchResults) == 0 else searchResults
-
         return render_template('index.html', results=results, index=True)
 
     return render_template('index.html', index=True)
@@ -148,7 +147,7 @@ def book(id):
         print(f"sessionstate: {session}")
         if session != {} and session['username'] != None:
             # Get form data
-            ratValue = request.form.get('rat')
+            ratValue = request.form.get('rating')
             comment = request.form.get('comment')
             book_id = id
             user_id = session['user_id']
