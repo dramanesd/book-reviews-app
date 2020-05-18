@@ -57,31 +57,31 @@ $ flask run
 
 Project structures:
 
-  .
-  ├── static
-  │   ├── css
-  │   │   ├── ...
-  │   │   ├── main.css                # Contain compiled styles from ths scss file
-  │   │   ├── ...
-  │   ├── images
-  │   │   ├── ...
-  │   ├── js
-  │   │   ├── ...
-  │   ├── scss 
-  │   │   ├── main.scss
-  ├── templates
-  │   ├── 404.html
-  │   ├── book.html
-  │   ├── error.html
-  │   ├── index.html
-  │   ├── layout.html
-  │   ├── login.html
-  │   ├── register.html
-  ├── .gitignore
-  ├── application.py
-  ├── books.csv
-  ├── db.sql
-  ├── import.py
-  ├── README.md
-  ├── requirements.txt
-  ├── utils.py
+    .
+    ├── static
+    │   ├── css
+    │   │   ├── ...
+    │   │   ├── main.css            # Contain compiled styles from ths scss file
+    │   │   ├── ...
+    │   ├── images                  # All the images in the project are here 
+    │   │   ├── ...
+    │   ├── js                      # Js dependencies
+    │   │   ├── ...
+    │   ├── scss 
+    │   │   ├── main.scss           # Project styles defined here
+    ├── templates
+    │   ├── 404.html                # Page not found template contain meaningful message for the user and a link to home page
+    │   ├── book.html               # The book details page ( book details setcion, details from goodreads section, review form, local reviews for book display list )
+    │   ├── error.html
+    │   ├── index.html              # The home page contain search form and display search results
+    │   ├── layout.html             # The base layout which contain the navbar elements and the flash meassage display container
+    │   ├── login.html              # The login form with two fields for username, password and submit button
+    │   ├── register.html           # Register form with three fields for username, email, password and submit button
+    ├── .gitignore                  # ignore files from being tracked
+    ├── application.py              # The main application file with all the routes and related logics ( home route `/` with search logic, 404 route `/404` for custom 404 page, register route `/register` with registration logics, login route `/login` sign in logics, logout route `/logout` to clear user from the session, book details route `/book/id` for fetching book data, make request to goodreads api for this book data, submitting review into database and update the book info in database as well )
+    ├── books.csv                   # All the book data to be inserted in the database
+    ├── db.sql                      # Database schema ( tables books, users, reviews )
+    ├── import.py                   # Connect to the database, create table if not existe, grab data in book.csv and insert them in the respective columns in books table
+    ├── README.md                   # Project details
+    ├── requirements.txt            # All the dependencies for this project to functionne
+    ├── utils.py                    # Some helper functions for the password hash
