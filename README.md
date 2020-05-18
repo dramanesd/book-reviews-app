@@ -72,7 +72,6 @@ Project structures:
     ├── templates
     │   ├── 404.html                # Page not found template contain meaningful message for the user and a link to home page
     │   ├── book.html               # The book details page ( book details setcion, details from goodreads section, review form, local reviews for book display list )
-    │   ├── error.html
     │   ├── index.html              # The home page contain search form and display search results
     │   ├── layout.html             # The base layout which contain the navbar elements and the flash meassage display container
     │   ├── login.html              # The login form with two fields for username, password and submit button
