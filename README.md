@@ -37,6 +37,8 @@ To run the app do the following command:
 
 this will run the app in production mode.
 
+export environment variables ` DATABASE_URL, GOODREADS_KEY ` before runing the app.
+
 ```
 $ export FLASK_APP=application.py
 
